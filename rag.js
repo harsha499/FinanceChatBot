@@ -34,7 +34,7 @@ function formatChatHistory(messages) {
 
 export async function getRAGAnswer(query, sessionId = "default") {
   const vectorStore = await getVectorStore();
-  const retriever = vectorStore.asRetriever({ k: 3 });
+  const retriever = vectorStore.asRetriever({ k: 5 });
 
   const prompt = PromptTemplate.fromTemplate(`
 Use the following pieces of context to answer the question at the end. 
