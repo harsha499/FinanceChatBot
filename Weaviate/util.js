@@ -6,7 +6,6 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { configure } from "weaviate-client";
 
-
 const collectionName = process.env.collectionName;
 const columnName = process.env.columnName;
 export const getVectorStore = async () => {
@@ -55,12 +54,58 @@ export const getCollections = async (collectionName) => {
   const isExist = await result.exists();
   return { isExist, result };
 };
-export const loadDataToDb = async (
-  collectionName,
-  columnName,
-  url,
-  type
-) => {
+const sanitizePropertyName = (name) => {
+  return name
+    .replace(/:/g, "_colon_") // Replace colons with _colon_
+    .replace(/[^_A-Za-z0-9]/g, "_") // Replace other invalid chars with underscore
+    .replace(/^[^_A-Za-z]/, "_") // Ensure starts with letter or underscore
+    .replace(/_+/g, "_") // Replace multiple underscores with single
+    .substring(0, 230); // Limit to 230 characters
+};
+const sanitizeDocumentMetadata = (docs) => {
+  return docs.map((doc) => {
+    const keyMappings = {};
+    const sanitizedMetadata = sanitizeObjectKeysRecursively(
+      doc.metadata,
+      keyMappings
+    );
+
+    if (Object.keys(keyMappings).length > 0) {
+      sanitizedMetadata.metadata_key_mappings = JSON.stringify(keyMappings);
+    }
+
+    return {
+      ...doc,
+      metadata: sanitizedMetadata,
+    };
+  });
+};
+
+const sanitizeObjectKeysRecursively = (obj, mappings = {}) => {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sanitizeObjectKeysRecursively(item, mappings));
+  }
+
+  if (obj !== null && typeof obj === "object") {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const sanitizedKey = /^[_A-Za-z][_0-9A-Za-z]{0,230}$/.test(key)
+        ? key
+        : sanitizePropertyName(key);
+
+      if (sanitizedKey !== key) {
+        mappings[key] = sanitizedKey;
+      }
+
+      sanitized[sanitizedKey] = sanitizeObjectKeysRecursively(value, mappings);
+    }
+    return sanitized;
+  }
+
+  return obj; // Primitive value
+};
+
+export const loadDataToDb = async (collectionName, columnName, url, type) => {
   let loader;
   let docs;
   let splitter;
@@ -72,6 +117,7 @@ export const loadDataToDb = async (
       chunkOverlap: 100,
       separators: ["\n\n", "\n", ".", " "], // proper descending order
     });
+    docs = sanitizeDocumentMetadata(docs);
   }
   if (type == "web") {
     loader = new CheerioWebBaseLoader(url);
