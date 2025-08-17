@@ -18,20 +18,6 @@ function getMessageHistory(sessionId = "default") {
   return messageHistories.get(sessionId);
 }
 
-// Format conversation history for the prompt
-function formatChatHistory(messages) {
-  return messages
-    .map((message) => {
-      if (message._getType() === "human") {
-        return `Human: ${message.content}`;
-      } else if (message._getType() === "ai") {
-        return `Assistant: ${message.content}`;
-      }
-      return "";
-    })
-    .join("\n");
-}
-
 export async function getRAGAnswer(query, sessionId = "default") {
   const vectorStore = await getVectorStore();
   const retriever = vectorStore.asRetriever({ k: 5 });
@@ -40,17 +26,20 @@ export async function getRAGAnswer(query, sessionId = "default") {
 Use the following pieces of context to answer the question at the end. 
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
+You have access to the previous conversation history. Pay attention to earlier questions and topics discussed.
+If asked about previous questions or conversation, refer to the history provided.
+
 Previous conversation:
 {history}
 
-Context:
+Context from knowledge base:
 {context}
 
-Question: {question}
+Current Question: {question}
 
 Helpful Answer:`);
 
-  // Create the RAG chain
+  // Create the RAG chain - FIXED VERSION
   const ragChain = RunnableSequence.from([
     {
       context: async (input) => {
@@ -58,29 +47,24 @@ Helpful Answer:`);
         return docs.map((doc) => doc.pageContent).join("\n\n");
       },
       question: (input) => input.question,
-      history: async (input) => {
-        const messageHistory = getMessageHistory(input.sessionId);
-        const messages = await messageHistory.getMessages();
-        return formatChatHistory(messages);
-      },
+      history: (input) => input.history || "", // Use the history passed from RunnableWithMessageHistory
     },
     prompt,
     llm,
     new StringOutputParser(),
   ]);
 
-  // Wrap with message history
+  // Wrap with message history - this automatically manages conversation history
   const chainWithHistory = new RunnableWithMessageHistory({
     runnable: ragChain,
-    getMessageHistory,
-
+    getMessageHistory: getMessageHistory,
     inputMessagesKey: "question",
     historyMessagesKey: "history",
   });
 
   try {
     const result = await chainWithHistory.invoke(
-      { question: query, sessionId },
+      { question: query },
       { configurable: { sessionId } }
     );
 
@@ -96,14 +80,4 @@ export function clearConversationHistory(sessionId = "default") {
   if (messageHistories.has(sessionId)) {
     messageHistories.delete(sessionId);
   }
-}
-
-// Get conversation history for a session
-export async function getConversationHistory(sessionId = "default") {
-  const messageHistory = getMessageHistory(sessionId);
-  const messages = await messageHistory.getMessages();
-  return messages.map((msg) => ({
-    type: msg._getType(),
-    content: msg.content,
-  }));
 }
