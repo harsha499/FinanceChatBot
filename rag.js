@@ -11,6 +11,7 @@ const llm = new ChatOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // In-memory conversation history
 const messageHistories = new Map();
 
+// creating ChatMessageHistory object for each sessionId
 function getMessageHistory(sessionId = "default") {
   if (!messageHistories.has(sessionId)) {
     messageHistories.set(sessionId, new ChatMessageHistory());
@@ -72,12 +73,5 @@ Helpful Answer:`);
   } catch (error) {
     console.error("Error in RAG chain:", error);
     throw error;
-  }
-}
-
-// Utility function to clear conversation history
-export function clearConversationHistory(sessionId = "default") {
-  if (messageHistories.has(sessionId)) {
-    messageHistories.delete(sessionId);
   }
 }

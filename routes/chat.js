@@ -11,13 +11,13 @@ router.post("/", async (req, res) => {
   const collectionName = process.env.collectionName;
   const columnName = process.env.columnName;
   const {
-    body: { message },
+    body: { message, uuid },
     files,
   } = req;
 
   if (files.length == 0 && message) {
     try {
-      const answer = await getRAGAnswer(message);
+      const answer = await getRAGAnswer(message,uuid);
       res.json({ response: answer });
     } catch (err) {
       console.error(err);
@@ -47,7 +47,7 @@ async function uploadFiles(files, collectionName, columnName) {
     tempPath,
     "pdf"
   );
-   await fs.unlinkSync(tempPath);
+  await fs.unlinkSync(tempPath);
 }
 
 export default router;
