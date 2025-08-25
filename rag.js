@@ -24,8 +24,9 @@ export async function getRAGAnswer(query, sessionId = "default") {
   const retriever = vectorStore.asRetriever({ k: 5 });
 
   const prompt = PromptTemplate.fromTemplate(`
-Use the following pieces of context to answer the question at the end. 
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
+You are an assistant that ONLY answers using the provided context. 
+Do not use prior knowledge, do not use external sources, and do not make assumptions. 
+If the answer cannot be found in the context, reply with: "I don’t know based on the provided data."
 
 You have access to the previous conversation history. Pay attention to earlier questions and topics discussed.
 If asked about previous questions or conversation, refer to the history provided.
