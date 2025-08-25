@@ -24,12 +24,13 @@ export async function getRAGAnswer(query, sessionId = "default") {
   const retriever = vectorStore.asRetriever({ k: 5 });
 
   const prompt = PromptTemplate.fromTemplate(`
-You are an assistant that ONLY answers using the provided context. 
-Do not use prior knowledge, do not use external sources, and do not make assumptions. 
-If the answer cannot be found in the context, reply with: "I don’t know based on the provided data."
+You are an AI assistant that can have natural conversations.
 
-You have access to the previous conversation history. Pay attention to earlier questions and topics discussed.
-If asked about previous questions or conversation, refer to the history provided.
+Rules:
+- For casual or general conversation (e.g., greetings, chit-chat, opinions), you can answer freely. 
+- For technical or factual questions, you MUST rely only on the provided context from the knowledge base.
+- If the answer is not present in the context, respond with: "I don’t know based on the provided data."
+- Never use external knowledge or assumptions for technical details.
 
 Previous conversation:
 {history}
@@ -39,7 +40,7 @@ Context from knowledge base:
 
 Current Question: {question}
 
-Helpful Answer:`);
+Answer:`);
 
   // Create the RAG chain - FIXED VERSION
   const ragChain = RunnableSequence.from([
