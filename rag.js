@@ -31,6 +31,7 @@ Rules:
 - For technical or factual questions, you MUST rely only on the provided context from the knowledge base.
 - If the answer is not present in the context, respond with: "I don’t know based on the provided data."
 - Never use external knowledge or assumptions for technical details.
+- Try to check History if something is asked from user previously, then try to answer from it otherwise follow above steps.
 
 Previous conversation:
 {history}
