@@ -51,7 +51,11 @@ Answer:`);
         return docs.map((doc) => doc.pageContent).join("\n\n");
       },
       question: (input) => input.question,
-      history: (input) => input.history || "", // Use the history passed from RunnableWithMessageHistory
+      history: async (input) => {
+        const history = getMessageHistory(sessionId || "default");
+        const messages = await history.getMessages();
+        return messages.map((msg) => `${msg.role}:${msg.content}`).join("\n");
+      }, // Use the history passed from RunnableWithMessageHistory
     },
     prompt,
     llm,
