@@ -21,7 +21,7 @@ function getMessageHistory(sessionId = "default") {
 
 export async function getRAGAnswer(query, sessionId = "default") {
   const vectorStore = await getVectorStore();
-  const retriever = vectorStore.asRetriever({ k: 5 });
+  const retriever = vectorStore.asRetriever({ k: 10 });
 
   const prompt = PromptTemplate.fromTemplate(`
 You are an AI assistant that can have natural conversations.

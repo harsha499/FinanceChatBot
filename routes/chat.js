@@ -17,7 +17,7 @@ router.post("/", async (req, res) => {
 
   if (files.length == 0 && message) {
     try {
-      const answer = await getRAGAnswer(message,uuid);
+      const answer = await getRAGAnswer(message, uuid);
       res.json({ response: answer });
     } catch (err) {
       console.error(err);
