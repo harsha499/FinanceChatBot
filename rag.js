@@ -32,6 +32,7 @@ Rules:
 - If the answer is not present in the context, respond with: "I don’t know based on the provided data."
 - Never use external knowledge or assumptions for technical details.
 - Try to check History if something is asked from user previously, then try to answer from it otherwise follow above steps.
+- If the current question is about the conversation history(e.g. , "what was my first question?), extract and return the first user message from the history 
 
 Previous conversation:
 {history}
